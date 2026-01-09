@@ -1,262 +1,149 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-}
-
-interface CartItem extends Product {
-  quantity: number;
-}
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: 'Премиум курс по дизайну',
-    price: 12990,
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop',
-    category: 'Курсы'
-  },
-  {
-    id: 2,
-    name: 'Индивидуальная консультация',
-    price: 4990,
-    image: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&h=300&fit=crop',
-    category: 'Услуги'
-  },
-  {
-    id: 3,
-    name: 'Мастер-класс онлайн',
-    price: 2990,
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=300&fit=crop',
-    category: 'События'
-  },
-  {
-    id: 4,
-    name: 'Годовая подписка PRO',
-    price: 24990,
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
-    category: 'Подписки'
-  },
-  {
-    id: 5,
-    name: 'Аудит вашего проекта',
-    price: 7990,
-    image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop',
-    category: 'Услуги'
-  },
-  {
-    id: 6,
-    name: 'Набор шаблонов',
-    price: 1990,
-    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&h=300&fit=crop',
-    category: 'Цифровые товары'
-  }
-];
-
 const Index = () => {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
 
-  const addToCart = (product: Product) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     toast({
-      title: 'Добавлено в корзину',
-      description: product.name
+      title: 'Заявка отправлена!',
+      description: 'Мы свяжемся с вами в ближайшее время'
     });
-  };
-
-  const removeFromCart = (id: number) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  const updateQuantity = (id: number, quantity: number) => {
-    if (quantity < 1) {
-      removeFromCart(id);
-      return;
-    }
-    setCart(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
-  };
-
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const handleCheckout = () => {
-    toast({
-      title: 'Заказ оформлен!',
-      description: `Сумма: ${total.toLocaleString('ru-RU')} ₽`
-    });
-    setCart([]);
-    setIsCartOpen(false);
   };
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            SHOP
-          </h1>
-          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="relative">
-                <Icon name="ShoppingCart" size={20} />
-                {cart.length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {cart.length}
-                  </Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-lg">
-              <SheetHeader>
-                <SheetTitle>Корзина</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                {cart.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">Корзина пуста</p>
-                ) : (
-                  <>
-                    {cart.map(item => (
-                      <Card key={item.id}>
-                        <CardContent className="p-4">
-                          <div className="flex gap-4">
-                            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{item.name}</h4>
-                              <p className="text-sm text-muted-foreground">{item.price.toLocaleString('ru-RU')} ₽</p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                >
-                                  <Icon name="Minus" size={14} />
-                                </Button>
-                                <span className="w-8 text-center">{item.quantity}</span>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                >
-                                  <Icon name="Plus" size={14} />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 ml-auto"
-                                  onClick={() => removeFromCart(item.id)}
-                                >
-                                  <Icon name="Trash2" size={14} />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex justify-between text-lg font-bold mb-4">
-                        <span>Итого:</span>
-                        <span>{total.toLocaleString('ru-RU')} ₽</span>
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <Label htmlFor="name">Имя</Label>
-                          <Input id="name" placeholder="Иван Иванов" />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="ivan@example.com" />
-                        </div>
-                        <div>
-                          <Label htmlFor="phone">Телефон</Label>
-                          <Input id="phone" placeholder="+7 999 123-45-67" />
-                        </div>
-                        <Button className="w-full" size="lg" onClick={handleCheckout}>
-                          Оформить заказ
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-50 border-b">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            PULS
+          </div>
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#about" className="text-sm font-medium hover:text-primary transition-colors">О нас</a>
+            <a href="#services" className="text-sm font-medium hover:text-primary transition-colors">Услуги</a>
+            <a href="#advantages" className="text-sm font-medium hover:text-primary transition-colors">Преимущества</a>
+            <a href="#contact" className="text-sm font-medium hover:text-primary transition-colors">Контакты</a>
+          </nav>
+          <Button variant="outline" size="sm">Войти</Button>
         </div>
       </header>
 
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
-        <div className="container mx-auto text-center">
-          <h2 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Твой путь к успеху
-          </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in">
-            Выбирай лучшие курсы, консультации и инструменты для роста
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="container mx-auto text-center max-w-5xl">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in leading-tight">
+            Твой бизнес на новом уровне
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '100ms' }}>
+            Помогаем компаниям расти быстрее с помощью современных digital-решений
           </p>
-          <div className="flex flex-wrap gap-4 justify-center animate-scale-in">
-            <Button size="lg" className="text-lg px-8">
-              <Icon name="Sparkles" size={20} className="mr-2" />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-in" style={{ animationDelay: '200ms' }}>
+            <Button size="lg" className="text-lg px-10 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               Начать сейчас
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8">
-              <Icon name="Play" size={20} className="mr-2" />
-              Смотреть демо
+            <Button size="lg" variant="outline" className="text-lg px-10">
+              Узнать больше
             </Button>
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4">
+      <section id="advantages" className="py-20 px-6">
         <div className="container mx-auto">
-          <h3 className="text-4xl font-bold text-center mb-12">Наши предложения</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">Почему выбирают нас</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: 'Zap',
+                title: 'Быстрый результат',
+                description: 'Запускаем проекты в 2 раза быстрее конкурентов'
+              },
+              {
+                icon: 'Shield',
+                title: 'Надёжность',
+                description: 'Гарантируем стабильную работу всех систем'
+              },
+              {
+                icon: 'TrendingUp',
+                title: 'Рост продаж',
+                description: 'Наши клиенты увеличивают выручку на 40%+'
+              }
+            ].map((item, index) => (
               <Card
-                key={product.id}
-                className="overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 animate-fade-in group"
+                key={index}
+                className="p-8 text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in border-2"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <Badge className="absolute top-3 right-3">{product.category}</Badge>
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
+                  <Icon name={item.icon as any} size={32} className="text-white" />
                 </div>
-                <CardContent className="p-6">
-                  <h4 className="text-xl font-semibold mb-2">{product.name}</h4>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {product.price.toLocaleString('ru-RU')} ₽
+                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                <p className="text-muted-foreground">{item.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="services" className="py-20 px-6 bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="container mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">Наши услуги</h2>
+          <p className="text-center text-muted-foreground mb-16 text-lg">Выберите подходящий тариф</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                name: 'Стартовый',
+                price: '29 990',
+                features: ['Лендинг', 'Адаптивная вёрстка', 'SEO-оптимизация', 'Техподдержка 1 месяц']
+              },
+              {
+                name: 'Бизнес',
+                price: '79 990',
+                features: ['Корпоративный сайт', 'Интеграции', 'CRM-система', 'Техподдержка 6 месяцев'],
+                featured: true
+              },
+              {
+                name: 'Премиум',
+                price: '149 990',
+                features: ['Интернет-магазин', 'Личный кабинет', 'Аналитика', 'Техподдержка 12 месяцев']
+              }
+            ].map((plan, index) => (
+              <Card
+                key={index}
+                className={`p-8 hover:shadow-2xl transition-all duration-300 animate-fade-in ${
+                  plan.featured ? 'border-4 border-purple-600 scale-105' : ''
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {plan.featured && (
+                  <div className="text-center mb-4">
+                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold px-4 py-1 rounded-full">
+                      ПОПУЛЯРНЫЙ
                     </span>
-                    <Button onClick={() => addToCart(product)} className="group-hover:shadow-lg">
-                      <Icon name="ShoppingCart" size={18} className="mr-2" />
-                      В корзину
-                    </Button>
                   </div>
+                )}
+                <CardContent className="p-0">
+                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {plan.price} ₽
+                    </span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <Icon name="Check" size={20} className="text-green-600 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full" variant={plan.featured ? 'default' : 'outline'}>
+                    Выбрать тариф
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -264,41 +151,80 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
-        <div className="container mx-auto text-center">
-          <h3 className="text-4xl font-bold mb-6">Почему выбирают нас?</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            {[
-              { icon: 'Award', title: 'Качество', text: 'Только проверенные материалы' },
-              { icon: 'Zap', title: 'Быстрый старт', text: 'Доступ сразу после оплаты' },
-              { icon: 'Users', title: 'Поддержка', text: '24/7 помощь экспертов' }
-            ].map((feature, index) => (
-              <Card key={index} className="p-8 hover:shadow-xl transition-shadow animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                  <Icon name={feature.icon as any} size={32} className="text-white" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">{feature.title}</h4>
-                <p className="text-muted-foreground">{feature.text}</p>
-              </Card>
-            ))}
-          </div>
+      <section id="contact" className="py-20 px-6">
+        <div className="container mx-auto max-w-2xl">
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">Свяжитесь с нами</h2>
+          <p className="text-center text-muted-foreground mb-12 text-lg">Оставьте заявку и мы перезвоним в течение 10 минут</p>
+          <Card className="p-8 shadow-xl">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Ваше имя</label>
+                <Input placeholder="Иван Иванов" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Email</label>
+                <Input type="email" placeholder="ivan@example.com" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Телефон</label>
+                <Input placeholder="+7 999 123-45-67" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Сообщение</label>
+                <Textarea placeholder="Расскажите о вашем проекте..." rows={4} required />
+              </div>
+              <Button type="submit" className="w-full" size="lg">
+                Отправить заявку
+              </Button>
+            </form>
+          </Card>
         </div>
       </section>
 
-      <footer className="py-12 px-4 bg-black text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            SHOP
-          </h2>
-          <p className="text-gray-400 mb-6">Всё для твоего роста и развития</p>
-          <div className="flex justify-center gap-4">
-            {['Instagram', 'Twitter', 'Youtube'].map(social => (
-              <Button key={social} variant="ghost" size="icon" className="text-white hover:text-primary">
-                <Icon name={social as any} size={20} />
-              </Button>
-            ))}
+      <footer className="py-12 px-6 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                PULS
+              </h3>
+              <p className="text-gray-400">Ваш надёжный партнёр в digital</p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Компания</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">О нас</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Команда</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Карьера</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Услуги</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Разработка</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Маркетинг</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Дизайн</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Контакты</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>info@puls.ru</li>
+                <li>+7 999 123-45-67</li>
+                <li>Москва, ул. Примерная, 1</li>
+              </ul>
+            </div>
           </div>
-          <p className="text-gray-500 text-sm mt-8">© 2024 SHOP. Все права защищены.</p>
+          <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-400 text-sm">© 2024 PULS. Все права защищены</p>
+            <div className="flex gap-4">
+              {['Instagram', 'Twitter', 'Linkedin', 'Youtube'].map(social => (
+                <Button key={social} variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+                  <Icon name={social as any} size={20} />
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
       </footer>
     </div>
